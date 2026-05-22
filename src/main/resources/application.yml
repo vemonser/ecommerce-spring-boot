@@ -1,0 +1,32 @@
+# spring.application.name=ecommerce
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/shopify_db
+    username: postgres
+    password: yourpassword
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}       # من environment variable
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: email, profile
+            
+application:
+  security:
+    jwt:
+      secret-key: ${JWT_SECRET}                  # 256-bit key على الأقل
+      access-token-expiration: 900000            # 15 دقيقة بالـ ms
+      refresh-token-expiration: 604800000        # 7 أيام بالـ ms
