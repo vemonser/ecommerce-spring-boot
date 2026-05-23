@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -38,7 +39,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String authHeader = request.getHeader("Authorization");
 
-        // 1. مفيش token — كمّل (endpoint ممكن يكون public)
+
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;
@@ -46,37 +47,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         String token = authHeader.substring(7);
 
-        try {
-            // 2. في token — هنتحقق منه
-            // لو في أي مشكلة → catch هيمسكها
-
-            // 3. الـ token في الـ blacklist؟
+            try {
+            // Check blacklist
             Boolean isBlacklisted = redisTemplate.hasKey("blacklist:" + token);
             if (Boolean.TRUE.equals(isBlacklisted)) {
                 sendErrorResponse(response, HttpStatus.UNAUTHORIZED, "Token has been revoked");
-                return; // ← ارفض مش تكمل
+                return;
             }
 
-            // 4. استخرج الـ email — لو الـ token expired أو invalid هيرمي exception هنا
             String email = jwtService.extractEmail(token);
 
-            // 5. حط الـ user في الـ SecurityContext لو مش موجود
-            if (email != null &&
-                SecurityContextHolder.getContext().getAuthentication() == null) {
-
+            if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                 UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-                UsernamePasswordAuthenticationToken authToken =
-                    new UsernamePasswordAuthenticationToken(
+                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
                         userDetails.getAuthorities()
-                    );
-
-                authToken.setDetails(
-                    new WebAuthenticationDetailsSource().buildDetails(request)
                 );
 
+                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 SecurityContextHolder.getContext().setAuthentication(authToken);
             }
 
@@ -89,11 +79,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
     }
 
+
     private void sendErrorResponse(HttpServletResponse response,
                                    HttpStatus status,
                                    String message) throws IOException {
         response.setStatus(status.value());
-        response.setContentType("application/json");
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(
             String.format(

@@ -38,8 +38,8 @@ public class EmailVerificationService {
 
         verificationTokenRepository.save(verificationToken);
 
-        String verificationLink = frontendUrl +
-                "/verify-email?token=" + rawToken;
+        String verificationLink = frontendUrl + "/verify-email?token=" + rawToken;
+
 
         emailService.sendVerificationEmail(
                 user.getEmail(),

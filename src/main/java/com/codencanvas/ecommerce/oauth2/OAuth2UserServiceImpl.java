@@ -8,8 +8,10 @@ import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 
 import com.codencanvas.ecommerce.auth.AuthProvider;
+import com.codencanvas.ecommerce.auth.AuthProviderRepository;
 import com.codencanvas.ecommerce.auth.dto.ProviderType;
 import com.codencanvas.ecommerce.oauth2.userinfo.OAuth2UserInfo;
+import com.codencanvas.ecommerce.oauth2.userinfo.OAuth2UserInfoFactory;
 import com.codencanvas.ecommerce.user.Role;
 import com.codencanvas.ecommerce.user.User;
 import com.codencanvas.ecommerce.user.UserRepository;
