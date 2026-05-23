@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verify Your Email</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: #f4f4f4; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center; }
+        .header h1 { color: #ffffff; margin: 0; font-size: 28px; font-weight: 600; }
+        .content { padding: 40px 30px; }
+        .greeting { font-size: 18px; color: #333; margin-bottom: 20px; }
+        .message { color: #666; line-height: 1.6; margin-bottom: 30px; }
+        .button { display: inline-block; padding: 16px 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff !important; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px; }
+        .button:hover { opacity: 0.9; }
+        .link-box { background: #f8f9fa; border-radius: 8px; padding: 15px; margin: 20px 0; word-break: break-all; font-size: 13px; color: #666; }
+        .footer { padding: 30px; text-align: center; background: #f8f9fa; color: #999; font-size: 13px; }
+        .footer a { color: #667eea; text-decoration: none; }
+        @media only screen and (max-width: 600px) {
+            .container { margin: 0; border-radius: 0; }
+            .content { padding: 30px 20px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔐 Verify Your Email</h1>
+        </div>
+        
+        <div class="content">
+            <p class="greeting">Hi <strong th:text="${fullName}">User</strong>,</p>
+            
+            <p class="message">
+                Thanks for signing up! Please verify your email address to activate your account. 
+                This link will expire in <strong th:text="${expiryHours}">24</strong> hours.
+            </p>
+            
+            <div style="text-align: center; margin: 35px 0;">
+                <a th:href="${verificationLink}" class="button">Verify Email Address</a>
+            </div>
+            
+            <p class="message" style="font-size: 14px;">
+                If the button doesn't work, copy and paste this link into your browser:
+            </p>
+            
+            <div class="link-box" th:text="${verificationLink}">
+               ${verificationLink}
+            </div>
+            
+            <p class="message" style="font-size: 14px; color: #999;">
+                If you didn't create an account, you can safely ignore this email.
+            </p>
+        </div>
+        
+        <div class="footer">
+            <p>Need help? Contact us at <a th:href="'mailto:' + ${supportEmail}" th:text="${supportEmail}">support@codencanvas.com</a></p>
+            <p style="margin-top: 15px;">&copy; 2026 CodeNCanvas. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>

@@ -7,53 +7,79 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.codencanvas.ecommerce.exception.InvalidTokenException;
+import com.codencanvas.ecommerce.infrastructure.email.EmailService;
 import com.codencanvas.ecommerce.user.User;
 import com.codencanvas.ecommerce.user.UserRepository;
 
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailVerificationService {
 
     private final EmailVerificationTokenRepository verificationTokenRepository;
     private final UserRepository userRepository;
-    private final emailService emailService;
+    private final EmailService emailService;
 
     @Value("${application.frontend-url}")
     private String frontendUrl;
 
+    @Value("${application.security.verification.token-expiry-hours:24}")
+    private int tokenExpiryHours;
+
     @Transactional
     public void sendVerificationEmail(User user) {
 
+        verificationTokenRepository.deleteByUserId(user.getId());
+
         String rawToken = UUID.randomUUID().toString();
 
-        EmailVerificationToken verificationToken = EmailVerificationToken.builder()
+        EmailVerificationToken token = EmailVerificationToken.builder()
                 .token(rawToken)
                 .user(user)
-                .expiresAt(LocalDateTime.now().plusHours(24))
+                .expiresAt(LocalDateTime.now().plusHours(tokenExpiryHours))
                 .used(false)
                 .build();
 
-        verificationTokenRepository.save(verificationToken);
+        verificationTokenRepository.save(token);
 
         String verificationLink = frontendUrl + "/verify-email?token=" + rawToken;
-
 
         emailService.sendVerificationEmail(
                 user.getEmail(),
                 user.getFullName(),
                 verificationLink);
+
+        log.info("Verification email sent to {}", user.getEmail());
+
     }
 
+    // ==========================================
+    // Resend
+    // ==========================================
+    @Transactional
+    public void resendVerificationEmail(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new InvalidTokenException("No account found with this email"));
+
+        if (user.isEnabled()) {
+            throw new InvalidTokenException("Account is already verified");
+        }
+
+        sendVerificationEmail(user);
+    }
+
+    // ==========================================
+    // Verify
+    // ==========================================
     @Transactional
     public void verifyEmail(String rawToken) {
-
         EmailVerificationToken token = verificationTokenRepository
                 .findByToken(rawToken)
-                .orElseThrow(() -> new InvalidTokenException(
-                        "Invalid verification token"));
+                .orElseThrow(() -> new InvalidTokenException("Invalid or expired verification token"));
 
         if (!token.isValid()) {
             throw new InvalidTokenException("Token expired or already used");
@@ -65,5 +91,11 @@ public class EmailVerificationService {
 
         token.setUsed(true);
         verificationTokenRepository.save(token);
+
+        // Cleanup: امسح كل tokens القديمة للـ user ده
+        verificationTokenRepository.deleteByUserId(user.getId());
+
+        log.info("Email verified successfully for {}", user.getEmail());
+
     }
 }

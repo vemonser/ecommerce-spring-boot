@@ -12,8 +12,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.codencanvas.ecommerce.auth.dto.AuthResponse;
+import com.codencanvas.ecommerce.auth.dto.ChangePasswordRequest;
+import com.codencanvas.ecommerce.auth.dto.ForgotPasswordRequest;
 import com.codencanvas.ecommerce.auth.dto.LoginRequest;
 import com.codencanvas.ecommerce.auth.dto.RegisterRequest;
+import com.codencanvas.ecommerce.auth.dto.ResetPasswordRequest;
 import com.codencanvas.ecommerce.user.UserPrincipal;
 
 import jakarta.validation.Valid;
@@ -28,6 +31,7 @@ public class AuthController {
     private final AuthService authService;
     private final RegisterService registerService;
     private final EmailVerificationService emailVerificationService;
+    private final PasswordResetService passwordResetService;
 
     @PostMapping("/register")
     public ResponseEntity<Void> register(
@@ -55,6 +59,36 @@ public class AuthController {
             @RequestHeader("X-Refresh-Token") String refreshToken) {
 
         return ResponseEntity.ok(authService.refresh(refreshToken));
+    }
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Void> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        passwordResetService.sendResetEmail(request.getEmail());
+
+        // نرجّع 202 Accepted حتى لو الإيميل مش موجود
+        // عشان محدش يعرف إيه الإيميلات المسجلة
+        return ResponseEntity.accepted().build();
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Void> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<Void> changePassword(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+
+        UserPrincipal principal = (UserPrincipal) authentication.getPrincipal();
+        passwordResetService.changePassword(principal.getUser(), request);
+
+        return ResponseEntity.ok().build();
     }
 
     @PostMapping("/logout")

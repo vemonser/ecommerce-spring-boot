@@ -8,12 +8,11 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface EmailVerificationTokenRepository
-        extends JpaRepository<EmailVerificationToken, Long> {
+public interface PasswordResetTokenRepository extends JpaRepository<PasswordResetToken, Long> {
 
-    Optional<EmailVerificationToken> findByToken(String token);
+    Optional<PasswordResetToken> findByToken(String token);
 
     @Modifying
-    @Query("DELETE FROM EmailVerificationToken t WHERE t.user.id = :userId")
+    @Query("DELETE FROM PasswordResetToken t WHERE t.user.id = :userId")
     void deleteByUserId(Long userId);
 }

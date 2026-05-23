@@ -1,13 +1,14 @@
 package com.codencanvas.ecommerce.auth;
 
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
 import com.codencanvas.ecommerce.auth.dto.ProviderType;
 import com.codencanvas.ecommerce.user.User;
 
-public class AuthProviderRepository {
+@Repository
+public interface AuthProviderRepository extends JpaRepository<AuthProvider, Long> {
 
-    public boolean existsByUserAndProvider(User user, ProviderType valueOf) {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'existsByUserAndProvider'");
-    }
+    boolean existsByUserAndProvider(User user, ProviderType provider);
     
 }
