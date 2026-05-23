@@ -20,12 +20,11 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.codencanvas.ecommerce.oauth2.OAuth2UserServiceImpl;
+import com.codencanvas.ecommerce.oauth2.handler.OAuth2SuccessHandler;
+import com.codencanvas.ecommerce.oauth2.service.OAuth2UserServiceImpl;
 import com.codencanvas.ecommerce.security.filter.JwtAuthenticationFilter;
 import com.codencanvas.ecommerce.security.handler.CustomAccessDeniedHandler;
 import com.codencanvas.ecommerce.security.handler.CustomAuthEntryPoint;
-import com.codencanvas.ecommerce.security.handler.OAuth2SuccessHandler;
-// import com.codencanvas.ecommerce.user.UserDetailsServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,10 +39,13 @@ public class SecurityConfig {
         private final CustomAccessDeniedHandler accessDeniedHandler;
         private final OAuth2SuccessHandler oAuth2SuccessHandler;
         private final OAuth2UserServiceImpl oAuth2UserService;
+        private final SecurityHeadersConfig securityHeadersConfig;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
+                                .headers(
+                                                securityHeadersConfig.securityHeaders())
                                 .csrf(csrf -> csrf.disable())
                                 // 2. CORS
                                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
@@ -79,8 +81,7 @@ public class SecurityConfig {
                 CorsConfiguration config = new CorsConfiguration();
                 // هتجيب الـ origin من env variable
                 config.setAllowedOrigins(List.of(
-                System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:3000")
-                ));
+                                System.getenv().getOrDefault("FRONTEND_URL", "http://localhost:3000")));
                 config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
                 config.setAllowedHeaders(List.of("Authorization", "Content-Type", "X-Requested-With"));
                 config.setExposedHeaders(List.of("X-Refresh-Token"));
@@ -91,8 +92,6 @@ public class SecurityConfig {
                 source.registerCorsConfiguration("/**", config);
                 return source;
         }
-
-
 
         @Bean
         public AuthenticationManager authenticationManager(

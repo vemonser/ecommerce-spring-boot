@@ -5,7 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.codencanvas.ecommerce.user.User;
+import com.codencanvas.ecommerce.user.model.User;
 
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;

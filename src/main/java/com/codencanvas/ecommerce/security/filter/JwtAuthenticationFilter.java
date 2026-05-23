@@ -13,7 +13,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.codencanvas.ecommerce.security.service.JwtService;
-import com.codencanvas.ecommerce.user.UserDetailsServiceImpl;
+import com.codencanvas.ecommerce.user.security.UserDetailsServiceImpl;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

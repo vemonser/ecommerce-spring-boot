@@ -58,6 +58,13 @@ application:
       secret-key: ${JWT_SECRET} # 256-bit key على الأقل
       access-token-expiration: 900000 # 15 دقيقة بالـ ms
       refresh-token-expiration: 604800000 # 7 أيام بالـ ms
+    verification:
+      token-expiry-hours: 24
+    reset:
+      token-expiry-hours: 1
+    lockout:
+      max-attempts: 5
+      duration-minutes: 30
 
 # Actuator endpoints للـ health checks
 management:
