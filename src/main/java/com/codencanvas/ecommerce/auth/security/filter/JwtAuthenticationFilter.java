@@ -1,4 +1,4 @@
-package com.codencanvas.ecommerce.security.filter;
+package com.codencanvas.ecommerce.auth.security.filter;
 
 import java.io.IOException;
 
@@ -12,7 +12,7 @@ import org.springframework.security.web.authentication.WebAuthenticationDetailsS
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.codencanvas.ecommerce.security.service.JwtService;
+import com.codencanvas.ecommerce.auth.security.service.JwtService;
 import com.codencanvas.ecommerce.user.security.UserDetailsServiceImpl;
 
 import io.jsonwebtoken.ExpiredJwtException;

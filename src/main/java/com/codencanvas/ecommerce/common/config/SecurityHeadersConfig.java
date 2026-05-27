@@ -1,4 +1,4 @@
-package com.codencanvas.ecommerce.config;
+package com.codencanvas.ecommerce.common.config;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.Customizer;

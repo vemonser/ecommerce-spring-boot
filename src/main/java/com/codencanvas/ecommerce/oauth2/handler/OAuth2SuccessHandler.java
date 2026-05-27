@@ -10,8 +10,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.codencanvas.ecommerce.auth.repository.RefreshTokenRepository;
+import com.codencanvas.ecommerce.auth.security.service.JwtService;
 import com.codencanvas.ecommerce.auth.token.RefreshToken;
-import com.codencanvas.ecommerce.security.service.JwtService;
 import com.codencanvas.ecommerce.user.security.UserPrincipal;
 
 import jakarta.servlet.http.Cookie;

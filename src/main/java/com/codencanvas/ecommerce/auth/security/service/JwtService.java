@@ -1,4 +1,4 @@
-package com.codencanvas.ecommerce.security.service;
+package com.codencanvas.ecommerce.auth.security.service;
 
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;

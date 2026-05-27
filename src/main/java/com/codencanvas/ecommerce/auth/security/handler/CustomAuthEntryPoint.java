@@ -1,4 +1,4 @@
-package com.codencanvas.ecommerce.security.handler;
+package com.codencanvas.ecommerce.auth.security.handler;
 
 import java.io.IOException;
 import java.time.LocalDateTime;

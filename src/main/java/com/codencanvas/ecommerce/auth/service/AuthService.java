@@ -11,10 +11,10 @@ import org.springframework.stereotype.Service;
 import com.codencanvas.ecommerce.auth.dto.AuthResponse;
 import com.codencanvas.ecommerce.auth.dto.LoginRequest;
 import com.codencanvas.ecommerce.auth.repository.RefreshTokenRepository;
+import com.codencanvas.ecommerce.auth.security.service.JwtService;
 import com.codencanvas.ecommerce.auth.token.RefreshToken;
 import com.codencanvas.ecommerce.common.exception.AccountLockoutException;
 import com.codencanvas.ecommerce.common.exception.InvalidTokenException;
-import com.codencanvas.ecommerce.security.service.JwtService;
 import com.codencanvas.ecommerce.user.model.User;
 import com.codencanvas.ecommerce.user.repository.UserRepository;
 import com.codencanvas.ecommerce.user.security.UserPrincipal;
@@ -32,6 +32,9 @@ public class AuthService {
     private final RefreshTokenRepository refreshTokenRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+
+    @Value("${application.security.jwt.access-token-expiration}")
+    private long accessTokenExpiration;
 
     @Value("${application.security.jwt.refresh-token-expiration}")
     private long refreshTokenExpiration;
@@ -161,11 +164,8 @@ public class AuthService {
                 .accessToken(accessToken)
                 .refreshToken(rawRefreshToken)
                 .tokenType("Bearer")
-                .expiresIn(900000L)
+                .expiresIn(accessTokenExpiration / 1000)
                 .build();
     }
-
-    @Value("${application.security.jwt.access-token-expiration}")
-    private long accessTokenExpiration;
 
 }

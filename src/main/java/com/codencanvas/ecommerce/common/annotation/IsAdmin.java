@@ -1,4 +1,4 @@
-package com.codencanvas.ecommerce.annotation;
+package com.codencanvas.ecommerce.common.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

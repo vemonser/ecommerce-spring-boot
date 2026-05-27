@@ -20,11 +20,13 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.codencanvas.ecommerce.auth.security.filter.JwtAuthenticationFilter;
+import com.codencanvas.ecommerce.auth.security.handler.CustomAccessDeniedHandler;
+import com.codencanvas.ecommerce.auth.security.handler.CustomAuthEntryPoint;
+import com.codencanvas.ecommerce.common.config.SecurityHeadersConfig;
+import com.codencanvas.ecommerce.infrastructure.ratelimit.RateLimitFilter;
 import com.codencanvas.ecommerce.oauth2.handler.OAuth2SuccessHandler;
 import com.codencanvas.ecommerce.oauth2.service.OAuth2UserServiceImpl;
-import com.codencanvas.ecommerce.security.filter.JwtAuthenticationFilter;
-import com.codencanvas.ecommerce.security.handler.CustomAccessDeniedHandler;
-import com.codencanvas.ecommerce.security.handler.CustomAuthEntryPoint;
 
 import lombok.RequiredArgsConstructor;
 
@@ -40,10 +42,12 @@ public class SecurityConfig {
         private final OAuth2SuccessHandler oAuth2SuccessHandler;
         private final OAuth2UserServiceImpl oAuth2UserService;
         private final SecurityHeadersConfig securityHeadersConfig;
+        private final RateLimitFilter rateLimitFilter;
 
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
+                                .addFilterBefore(rateLimitFilter, UsernamePasswordAuthenticationFilter.class)
                                 .headers(
                                                 securityHeadersConfig.securityHeaders())
                                 .csrf(csrf -> csrf.disable())
@@ -54,6 +58,8 @@ public class SecurityConfig {
                                 .authorizeHttpRequests(auth -> auth
                                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                                 .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                                                .requestMatchers("/login/oauth2/code/**", "/oauth2/**").permitAll()
+                                                .requestMatchers("/actuator/health").permitAll()
                                                 .requestMatchers("/error").permitAll()
                                                 .anyRequest().authenticated())
 
