@@ -1,16 +1,7 @@
 spring:
-  config:
-    import: optional:file:.env[.properties]
-
-  output:
-    ansi:
-      enabled: ALWAYS
 
   application:
     name: ecommerce
-
-  profiles:
-    active: ${SPRING_PROFILES_ACTIVE:dev}
 
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/ecommerce}
@@ -39,7 +30,7 @@ spring:
       client:
         registration:
           google:
-            client-id: ${GOOGLE_CLIENT_ID} 
+            client-id: ${GOOGLE_CLIENT_ID:} 
             client-secret: ${GOOGLE_CLIENT_SECRET}
             scope: email, profile
             redirect-uri: "{baseUrl}/login/oauth2/code/{registrationId}"
@@ -91,13 +82,3 @@ management:
     health:
       show-details: when_authorized
 
-# ═══════════════════════════════════
-#              LOGGING
-# ═══════════════════════════════════
-logging:
-  pattern:
-    console: "%clr(%d{HH:mm:ss}){faint} %clr(%5p){highlight} %clr([%15.15t]){faint} %clr(%-30logger{0}){cyan} %clr(:){faint} %m%n"
-  level:
-    com.codencanvas: DEBUG
-    org.springframework.security: DEBUG
-    org.flywaydb: INFO

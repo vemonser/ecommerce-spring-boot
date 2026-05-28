@@ -48,7 +48,8 @@ public class User {
 
     @Enumerated(EnumType.STRING)
     private Role role;
-
+    
+    @Builder.Default
     private boolean enabled = true;
 
     @Column(name = "failed_login_attempts")

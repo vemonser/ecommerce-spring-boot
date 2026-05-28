@@ -8,35 +8,33 @@ import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWrite
 
 @Configuration
 public class SecurityHeadersConfig {
-    public Customizer<HeadersConfigurer<HttpSecurity>> securityHeaders() {
-        return headers -> headers
-                // Clickjacking
-                .frameOptions(frame -> frame.deny())
-                // MIME sniffing
-                .contentTypeOptions(Customizer.withDefaults())
-                // HTTPS only
-                // .httpStrictTransportSecurity(hsts -> hsts
-                // .maxAgeInSeconds(31536000)
-                // .includeSubDomains(true)
-                // .preload(true))
-                // Referrer policy
-                .referrerPolicy(referrer -> referrer.policy(
-                        ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
+        public Customizer<HeadersConfigurer<HttpSecurity>> securityHeaders() {
+                return headers -> headers
+                                // Clickjacking
+                                .frameOptions(frame -> frame.deny())
+                                // MIME sniffing
+                                .contentTypeOptions(Customizer.withDefaults())
+                                // HTTPS only
+                                // .httpStrictTransportSecurity(hsts -> hsts
+                                // .maxAgeInSeconds(31536000)
+                                // .includeSubDomains(true)
+                                // .preload(true))
+                                // Referrer policy
+                                .referrerPolicy(referrer -> referrer.policy(
+                                                ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
 
-                // CSP
-                .contentSecurityPolicy(csp -> csp
-                        .policyDirectives(
-                                """
-                                        default-src 'self';
-                                        script-src 'self';
-                                        style-src 'self' 'unsafe-inline';
-                                        img-src 'self' data: https:;
-                                        font-src 'self';
-                                        connect-src 'self';
-                                        frame-ancestors 'none';
-                                        base-uri 'self';
-                                        form-action 'self';
-                                        """));
-    }
+                                // CSP
+                                .contentSecurityPolicy(csp -> csp
+                                                .policyDirectives(
+                                                                "default-src 'self'; " +
+                                                                                "script-src 'self'; " +
+                                                                                "style-src 'self' 'unsafe-inline'; " +
+                                                                                "img-src 'self' data: https:; " +
+                                                                                "font-src 'self'; " +
+                                                                                "connect-src 'self'; " +
+                                                                                "frame-ancestors 'none'; " +
+                                                                                "base-uri 'self'; " +
+                                                                                "form-action 'self';"));
+        }
 
 }
