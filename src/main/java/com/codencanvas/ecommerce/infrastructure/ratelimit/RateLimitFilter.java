@@ -61,10 +61,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private String getClientIp(HttpServletRequest request) {
-        String xfHeader = request.getHeader("X-Forwarded-For");
-        if (xfHeader != null && !xfHeader.isBlank()) {
-            return xfHeader.split(",")[0].trim();
-        }
+
         return request.getRemoteAddr();
     }
 
@@ -75,10 +72,10 @@ public class RateLimitFilter extends OncePerRequestFilter {
         response.setCharacterEncoding("UTF-8");
 
         String message = switch (type) {
-            case LimitType.LOGIN -> "Too many login attempts. Please try again later.";
-            case LimitType.REGISTER -> "Too many registration attempts. Please try again later.";
-            case LimitType.FORGOT_PASSWORD -> "Too many password reset requests. Please try again later.";
-            case LimitType.GENERAL -> "Too many requests. Please slow down.";
+            case LOGIN -> "Too many login attempts. Please try again later.";
+            case REGISTER -> "Too many registration attempts. Please try again later.";
+            case FORGOT_PASSWORD -> "Too many password reset requests. Please try again later.";
+            case GENERAL -> "Too many requests. Please slow down.";
         };
 
         var error = java.util.Map.of(
