@@ -23,3 +23,29 @@ CREATE TABLE
     );
 
 
+CREATE TABLE
+    brands (
+        id BIGSERIAL PRIMARY KEY,
+        slug VARCHAR(120) NOT NULL UNIQUE,
+        logo_url VARCHAR(500),          
+        logo_public_id VARCHAR(255),    
+        is_active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL,
+        deleted_at TIMESTAMP
+    );
+
+CREATE TABLE
+    brand_translations (
+        id BIGSERIAL PRIMARY KEY,
+        brand_id BIGINT NOT NULL REFERENCES brands(id) ON DELETE CASCADE,
+        language_code VARCHAR(2) NOT NULL, 
+        name VARCHAR(100) NOT NULL,
+        description VARCHAR(500),
+        created_at TIMESTAMP NOT NULL,
+        updated_at TIMESTAMP NOT NULL,
+        deleted_at TIMESTAMP,
+        UNIQUE(brand_id, language_code)
+    );
+
+
