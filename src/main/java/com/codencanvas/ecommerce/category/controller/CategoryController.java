@@ -10,7 +10,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -21,7 +20,6 @@ import com.codencanvas.ecommerce.category.dto.response.CategoryResponse;
 import com.codencanvas.ecommerce.category.service.CategoryService;
 import com.codencanvas.ecommerce.common.annotation.IsAdmin;
 import com.codencanvas.ecommerce.common.dto.ApiResponse;
-import com.codencanvas.ecommerce.common.model.Language;
 import com.codencanvas.ecommerce.common.util.ResponseUtil;
 
 import jakarta.validation.Valid;
@@ -36,35 +34,34 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public ResponseEntity<ApiResponse<List<CategoryResponse>>> allCategories(
-            @RequestHeader(value = "Accept-Language", defaultValue = "EN") Language language) {
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> allCategories() {
 
-        return ResponseUtil.ok("Categories fetched successfully", categoryService.getCategories(language));
+        return ResponseUtil.ok("Categories fetched successfully", categoryService.getCategories());
     }
 
     @GetMapping("/{slug}")
     public ResponseEntity<ApiResponse<CategoryResponse>> getCategoryBySlug(
-            @RequestHeader(value = "Accept-Language", defaultValue = "EN") Language language,
+
             @PathVariable String slug) {
-        return ResponseUtil.ok("Categories fetched successfully", categoryService.getCategoryBySlug(slug, language));
+        return ResponseUtil.ok("Categories fetched successfully", categoryService.getCategoryBySlug(slug));
     }
 
     @IsAdmin
     @PostMapping
     public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
-            @RequestHeader(value = "Accept-Language", defaultValue = "EN") Language language,
+          
             @RequestBody @Valid CreateCategoryRequest request) {
-        return ResponseUtil.ok("Category Created successfully", categoryService.createCategory(request, language));
+        return ResponseUtil.ok("Category Created successfully", categoryService.createCategory(request));
     }
 
     @IsAdmin
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
-            @RequestHeader(value = "Accept-Language", defaultValue = "EN") Language language,
+          
             @PathVariable Long id,
             @RequestBody @Valid UpdateCategoryRequest request) {
         return ResponseUtil.ok("Category Updated successfully",
-                categoryService.updateCategory(id, request, language));
+                categoryService.updateCategory(id, request));
     }
 
     @IsAdmin

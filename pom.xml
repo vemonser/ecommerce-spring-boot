@@ -21,6 +21,7 @@
         <org.mapstruct.version>1.7.0.Beta1</org.mapstruct.version> 
         <org.projectlombok.version>1.18.40</org.projectlombok.version>
         <lombok.mapstruct-binding.version>0.2.0</lombok.mapstruct-binding.version>
+        <cloudinary.version>1.39.0</cloudinary.version>
 
     </properties>
 
@@ -80,7 +81,12 @@
             <artifactId>postgresql</artifactId>
             <scope>runtime</scope>
         </dependency>
-
+        <!-- ========== CLOUDINARY ========== -->
+        <dependency> 
+            <groupId>com.cloudinary</groupId>
+            <artifactId>cloudinary-http45</artifactId>
+            <version>${cloudinary.version}</version>
+        </dependency>
         <!-- ========== Code Generation ========== -->
         <dependency>
             <groupId>org.projectlombok</groupId>

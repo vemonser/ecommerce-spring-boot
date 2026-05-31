@@ -13,10 +13,11 @@ import com.codencanvas.ecommerce.category.model.Category;
 import com.codencanvas.ecommerce.category.model.CategoryTranslation;
 import com.codencanvas.ecommerce.category.repository.CategoryRepository;
 import com.codencanvas.ecommerce.category.repository.CategoryTranslationRepository;
+import com.codencanvas.ecommerce.common.exception.AppException;
 import com.codencanvas.ecommerce.common.model.Language;
+import com.codencanvas.ecommerce.common.util.LanguageUtils;
 import com.codencanvas.ecommerce.common.util.SlugUtils;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +33,7 @@ public class CategoryService {
                 return translations.stream()
                                 .filter(t -> t.getLanguageCode() == Language.EN)
                                 .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("English translation is required"))
+                                .orElseThrow(() -> new AppException("error.category.english_required", 400))
                                 .getName();
         }
 
@@ -40,7 +41,7 @@ public class CategoryService {
                 return translations.stream()
                                 .filter(t -> t.getLanguageCode() == Language.EN)
                                 .findFirst()
-                                .orElseThrow(() -> new IllegalArgumentException("English translation is required"))
+                                .orElseThrow(() -> new AppException("error.category.english_required", 400))
                                 .getName();
         }
 
@@ -52,10 +53,12 @@ public class CategoryService {
                 if (parentId == null)
                         return null;
                 return categoryRepository.findById(parentId)
-                                .orElseThrow(() -> new EntityNotFoundException("Parent category not found"));
+                                .orElseThrow(() -> new AppException("error.category.parent_not_found", 404));
         }
 
-        private CategoryResponse buildResponse(Category category, Language language) {
+        private CategoryResponse buildResponse(Category category) {
+                Language language = LanguageUtils.getCurrentLanguage();
+
                 CategoryTranslation translation = category.getTranslations().stream()
                                 .filter(t -> t.getLanguageCode() == language)
                                 .findFirst()
@@ -67,25 +70,25 @@ public class CategoryService {
                                 categoryMapper.toDto(translation));
         }
 
-        public List<CategoryResponse> getCategories(Language language) {
+        public List<CategoryResponse> getCategories() {
                 return categoryRepository.findAllWithTranslations()
-                                .stream().map(c -> buildResponse(c, language))
+                                .stream().map(c -> buildResponse(c))
                                 .toList();
         }
 
-        public CategoryResponse getCategoryBySlug(String slug, Language language) {
+        public CategoryResponse getCategoryBySlug(String slug) {
                 Category category = categoryRepository.findBySlugWithTranslations(slug)
-                                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-                return buildResponse(category, language);
+                                .orElseThrow(() -> new AppException("error.category.not_found", 404));
+                return buildResponse(category);
         }
-        public CategoryResponse getCategoryById(Long id, Language language) {
+        public CategoryResponse getCategoryById(Long id) {
                 Category category = categoryRepository.findByIdWithTranslations(id)
-                                .orElseThrow(() -> new EntityNotFoundException("Category not found"));
-                return buildResponse(category, language);
+                                .orElseThrow(() -> new AppException("error.category.not_found", 404));
+                return buildResponse(category);
         }
 
         @Transactional
-        public CategoryResponse createCategory(CreateCategoryRequest request, Language language) {
+        public CategoryResponse createCategory(CreateCategoryRequest request) {
                 String slug = generateSlug(request.getTranslations());
                 Category parent = fetchParentIfExists(request.getParentId());
 
@@ -106,13 +109,13 @@ public class CategoryService {
                 translationRepository.saveAll(translations);
                 savedCategory.setTranslations(translations);
 
-                return buildResponse(savedCategory, language);
+                return buildResponse(savedCategory);
         }
 
         @Transactional
-        public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request, Language language) {
+        public CategoryResponse updateCategory(Long id, UpdateCategoryRequest request) {
                 Category currentCategory = categoryRepository.findByIdWithTranslations(id)
-                                .orElseThrow(() -> new EntityNotFoundException("Category Not Found"));
+                                .orElseThrow(() -> new AppException("error.category.not_found", 404));
 
                 String slug = currentCategory.getSlug();
                 if (request.getTranslations() != null) {
@@ -150,16 +153,16 @@ public class CategoryService {
 
                 categoryRepository.save(currentCategory);
 
-                return buildResponse(currentCategory, language);
+                return buildResponse(currentCategory);
 
         }
 
         @Transactional
         public void deleteCategory(Long id) {
                 Category category = categoryRepository.findById(id).orElseThrow(
-                                (() -> new EntityNotFoundException("Category Not Found")));
+                                (() -> new AppException("error.category.not_found", 404)));
                 if (categoryRepository.existsByParentIdAndDeletedAtIsNull(id)) {
-                        throw new IllegalStateException("Cannot delete category with existing children");
+                        throw new AppException("error.category.has_children", 409);
                 }
                 category.softDelete();
                 categoryRepository.save(category);
