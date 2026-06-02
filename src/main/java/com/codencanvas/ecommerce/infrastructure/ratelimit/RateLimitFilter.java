@@ -60,9 +60,23 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return null;
     }
 
+    private boolean isTrustedProxy(String ip) {
+        return ip.startsWith("10.0.") || ip.startsWith("172.31.");
+    }
+
     private String getClientIp(HttpServletRequest request) {
 
-        return request.getRemoteAddr();
+        String remoteAddr = request.getRemoteAddr();
+
+        if (isTrustedProxy(remoteAddr)) {
+            String xfHeader = request.getHeader("X-Forwarded-For");
+            if (xfHeader != null) {
+                String[] ips = xfHeader.split(",");
+                return ips[ips.length - 2].trim();
+            }
+        }
+
+        return remoteAddr;
     }
 
     private void sendRateLimitResponse(HttpServletResponse response, LimitType type)

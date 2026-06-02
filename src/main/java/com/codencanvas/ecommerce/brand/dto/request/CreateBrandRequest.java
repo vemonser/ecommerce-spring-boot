@@ -7,12 +7,11 @@ import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.Setter;
- 
 
 @Getter
 @Setter
 public class CreateBrandRequest {
-
+    private Boolean isActive;
     @NotEmpty(message = "Translations cannot be empty")
     @Size(min = 2, max = 2, message = "Must provide exactly 2 translations")
     private List<@Valid CreateBrandTranslationRequest> translations;

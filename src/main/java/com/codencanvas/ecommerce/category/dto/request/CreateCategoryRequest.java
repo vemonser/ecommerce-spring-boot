@@ -11,7 +11,8 @@ import lombok.Setter;
 @Getter
 @Setter
 public class CreateCategoryRequest {
-
+    
+    private Boolean isActive;
     private Long parentId;
     @NotEmpty(message = "Translations cannot be empty")
     @Size(min = 2, max = 2, message = "Must provide exactly 2 translations")

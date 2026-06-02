@@ -51,25 +51,24 @@ public class BrandController {
     @IsAdmin
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<BrandResponse>> createBrand(
-        @RequestPart("data") @Valid CreateBrandRequest request,
-        @RequestPart("logo") MultipartFile logo) {
-    return ResponseUtil.created(brandService.createBrand(request, logo));
+            @RequestPart("data") @Valid CreateBrandRequest request,
+            @RequestPart("logo") MultipartFile logo) {
+        return ResponseUtil.created(brandService.createBrand(request, logo));
     }
 
     @IsAdmin
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ApiResponse<BrandResponse>> updateBrand(
-        @PathVariable Long id,
-        @RequestPart("data") @Valid UpdateBrandRequest request,
-        @RequestPart(value = "logo", required = false) MultipartFile logo) {
-    return ResponseUtil.ok("Brand Updated successfully", brandService.updateBrand(id, request, logo));
+            @PathVariable Long id,
+            @RequestPart("data") @Valid UpdateBrandRequest request,
+            @RequestPart(value = "logo", required = false) MultipartFile logo) {
+        return ResponseUtil.ok("Brand Updated successfully", brandService.updateBrand(id, request, logo));
     }
 
     @IsAdmin
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> deleteBrand(
+    public ResponseEntity<ApiResponse<BrandResponse>> deleteBrand(
             @PathVariable Long id) {
-        brandService.deleteBrand(id);
-        return ResponseUtil.noContent();
+        return ResponseUtil.ok("Brand deleted successfully", brandService.deleteBrand(id));
     }
 }

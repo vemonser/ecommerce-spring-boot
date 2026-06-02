@@ -1,9 +1,17 @@
 package com.codencanvas.ecommerce.category.dto.response;
 
-public record CategoryResponse(
+import java.time.Instant;
 
-        Long id,
-        String slug,
-        Long parentId,
-        CategoryTranslationResponse translation) {
+public record CategoryResponse(
+                Long id,
+                String slug,
+                Long parentId,
+                String name,
+                String description,
+                Boolean isActive,
+                Instant createdAt,
+                Instant updatedAt,
+                Instant deletedAt
+
+) {
 }

@@ -13,10 +13,10 @@ import com.codencanvas.ecommerce.brand.mapper.BrandMapper;
 import com.codencanvas.ecommerce.brand.model.Brand;
 import com.codencanvas.ecommerce.brand.model.BrandTranslation;
 import com.codencanvas.ecommerce.brand.repository.BrandRepository;
-import com.codencanvas.ecommerce.brand.repository.BrandTranslationRepository;
 import com.codencanvas.ecommerce.cloudinary.service.CloudinaryService;
 import com.codencanvas.ecommerce.common.exception.AppException;
 import com.codencanvas.ecommerce.common.model.Language;
+import com.codencanvas.ecommerce.common.service.TranslationSyncService;
 import com.codencanvas.ecommerce.common.util.LanguageUtils;
 import com.codencanvas.ecommerce.common.util.SlugUtils;
 
@@ -28,19 +28,11 @@ import lombok.RequiredArgsConstructor;
 public class BrandService {
 
         private final BrandRepository brandRepository;
-        private final BrandTranslationRepository translationRepository;
         private final BrandMapper brandMapper;
         private final CloudinaryService cloudinaryService;
+        private final TranslationSyncService syncService;
 
         private String extractEnglishName(List<CreateBrandTranslationRequest> translations) {
-                return translations.stream()
-                                .filter(t -> t.getLanguageCode() == Language.EN)
-                                .findFirst()
-                                .orElseThrow(() -> new AppException("error.brand.english_required", 400))
-                                .getName();
-        }
-
-        private String extractEnglishNameFromEntities(List<BrandTranslation> translations) {
                 return translations.stream()
                                 .filter(t -> t.getLanguageCode() == Language.EN)
                                 .findFirst()
@@ -55,33 +47,38 @@ public class BrandService {
         private BrandResponse buildResponse(Brand brand) {
                 Language language = LanguageUtils.getCurrentLanguage();
 
-                BrandTranslation translation = brand.getTranslations().stream()
+                return brand.getTranslations().stream()
                                 .filter(t -> t.getLanguageCode() == language)
                                 .findFirst()
-                                .orElseThrow();
-                return new BrandResponse(
-                                brand.getId(),
-                                brand.getSlug(),
-                                brand.getLogoUrl(),
-                                brandMapper.toDto(translation));
+                                .map(translation -> new BrandResponse(
+                                                brand.getId(),
+                                                brand.getSlug(),
+                                                brand.getLogoUrl(),
+                                                translation.getName(),
+                                                translation.getDescription(),
+                                                brand.getIsActive(),
+                                                brand.getCreatedAt(), 
+                                                brand.getUpdatedAt(), 
+                                                brand.getDeletedAt() 
+                                ))
+                                .orElseThrow(() -> new AppException("error.brand.translation_not_found", 404));
         }
 
         public List<BrandResponse> getBrands() {
-                return brandRepository.findAllWithTranslations()
-                                .stream().map(c -> buildResponse(c))
-                                .toList();
+                Language language = LanguageUtils.getCurrentLanguage();
+                return brandRepository.findAllByLanguage(language);
         }
 
         public BrandResponse getBrandBySlug(String slug) {
-                Brand brand = brandRepository.findBySlugWithTranslations(slug)
+                Language language = LanguageUtils.getCurrentLanguage();
+                return brandRepository.findBySlugWithLanguage(slug, language)
                                 .orElseThrow(() -> new AppException("error.brand.not_found", 404));
-                return buildResponse(brand);
         }
 
         public BrandResponse getBrandById(Long id) {
-                Brand brand = brandRepository.findByIdWithTranslations(id)
+                Language language = LanguageUtils.getCurrentLanguage();
+                return brandRepository.findByIdWithLanguage(id, language)
                                 .orElseThrow(() -> new AppException("error.brand.not_found", 404));
-                return buildResponse(brand);
         }
 
         @Transactional
@@ -89,79 +86,60 @@ public class BrandService {
                 CloudinaryService.UploadResult result = cloudinaryService.upload(logo, "brands/logos");
 
                 String slug = generateSlug(request.getTranslations());
-                Brand brand = brandMapper.toEntity(request);
-                brand.setSlug(slug);
-                brand.setLogoUrl(result.url());
-                brand.setLogoPublicId(result.publicId());
+                Boolean isActive = request.getIsActive() != null ? request.getIsActive() : true;
 
+                Brand brand = Brand.create(slug, result.url(), result.publicId(), isActive);
+
+                request.getTranslations().forEach(t -> {
+                        BrandTranslation translation = brandMapper.toEntity(t);
+                        brand.addTranslation(translation);
+                });
                 Brand savedBrand = brandRepository.save(brand);
-
-                List<BrandTranslation> translations = request.getTranslations().stream()
-                                .map(t -> {
-                                        BrandTranslation translation = brandMapper.toEntity(t);
-                                        translation.setBrand(savedBrand);
-                                        return translation;
-                                })
-                                .toList();
-                translationRepository.saveAll(translations);
-                savedBrand.setTranslations(translations);
-
                 return buildResponse(savedBrand);
+
         }
 
         @Transactional
         public BrandResponse updateBrand(Long id, UpdateBrandRequest request, MultipartFile logo) {
+                // 1. Brand ENTITY
                 Brand currentBrand = brandRepository.findByIdWithTranslations(id)
                                 .orElseThrow(() -> new AppException("error.brand.not_found", 404));
 
-                String slug = currentBrand.getSlug();
-                if (request.getTranslations() != null) {
-                        String currentEnglishName = extractEnglishNameFromEntities(currentBrand.getTranslations());
-                        String requestEnglishName = extractEnglishName(request.getTranslations());
-                        slug = !currentEnglishName.equals(requestEnglishName)
-                                        ? SlugUtils.toSlug(requestEnglishName)
-                                        : currentBrand.getSlug();
-                }
-
+                // 2. Logo
                 if (logo != null && !logo.isEmpty()) {
                         cloudinaryService.delete(currentBrand.getLogoPublicId());
                         CloudinaryService.UploadResult result = cloudinaryService.upload(logo, "brands/logos");
                         currentBrand.setLogoUrl(result.url());
                         currentBrand.setLogoPublicId(result.publicId());
-
                 }
 
+                // 3. isActive
                 if (request.getIsActive() != null) {
                         currentBrand.setIsActive(request.getIsActive());
                 }
-                currentBrand.setSlug(slug);
 
+                // 4. Sync Translations
                 if (request.getTranslations() != null) {
-                        request.getTranslations().forEach(t -> {
-                                currentBrand.getTranslations().stream()
-                                                .filter(existing -> existing.getLanguageCode() == t.getLanguageCode())
-                                                .findFirst()
-                                                .ifPresentOrElse(
-                                                                existing -> brandMapper.updateTranslationFromRequest(
-                                                                                t, existing),
-                                                                () -> {
-                                                                        BrandTranslation newTranslation = brandMapper
-                                                                                        .toEntity(t);
-                                                                        newTranslation.setBrand(currentBrand);
-                                                                        translationRepository.save(newTranslation);
-                                                                });
-                        });
+                        syncService.sync(
+                                        currentBrand,
+                                        request.getTranslations(),
+                                        BrandTranslation::getLanguageCode,
+                                        CreateBrandTranslationRequest::getLanguageCode,
+                                        brandMapper::updateTranslationFromRequest,
+                                        brandMapper::toEntity);
                 }
-                brandRepository.save(currentBrand);
-                return buildResponse(currentBrand);
+                Brand saved = brandRepository.save(currentBrand);
+                // 5. Return DTO
+                return buildResponse(saved);
         }
 
         @Transactional
-        public void deleteBrand(Long id) {
+        public BrandResponse  deleteBrand(Long id) {
                 Brand brand = brandRepository.findById(id).orElseThrow(
                                 (() -> new AppException("error.brand.not_found", 404)));
 
                 brand.softDelete();
                 brandRepository.save(brand);
+                return buildResponse(brand);
         }
 }
